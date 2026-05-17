@@ -84,16 +84,31 @@ function Add-ResourceGroupLock {
     Write-Ok "Delete lock applied: $LockName"
 }
 
-function Show-BackendConfig {
+function New-BackendConfigs {
+    $modules = @("shared", "app-service-hosting")
+
+    Write-Step "Generating backend.hcl files from templates..."
+    foreach ($module in $modules) {
+        $samplePath = Join-Path $PSScriptRoot $module "backend.hcl.sample"
+        $outputPath = Join-Path $PSScriptRoot $module "backend.hcl"
+
+        if (-not (Test-Path $samplePath)) {
+            Write-Fail "Template not found: $samplePath"
+            exit 1
+        }
+
+        $content = Get-Content $samplePath -Raw
+        $content = $content -replace "\{\{RESOURCE_GROUP_NAME\}\}", $ResourceGroup
+        $content = $content -replace "\{\{STORAGE_ACCOUNT_NAME\}\}", $StorageAccount
+        $content = $content -replace "\{\{CONTAINER_NAME\}\}",       $Container
+
+        Set-Content -Path $outputPath -Value $content -NoNewline
+        Write-Ok "Generated: $outputPath"
+    }
+
     Write-Host ""
-    Write-Host "Terraform backend configuration:" -ForegroundColor Cyan
-    Write-Host "--------------------------------" -ForegroundColor Cyan
-    Write-Host "resource_group_name  = `"$ResourceGroup`""
-    Write-Host "storage_account_name = `"$StorageAccount`""
-    Write-Host "container_name       = `"$Container`""
-    Write-Host "key                  = `"<module>.tfstate`"  # e.g. app-service.tfstate"
-    Write-Host ""
-    Write-Host "Add these values to infra-azure/<module>/backend.tf before running terraform init." -ForegroundColor Yellow
+    Write-Host "Run terraform init in each module with:" -ForegroundColor Cyan
+    Write-Host "  terraform init -backend-config=backend.hcl" -ForegroundColor Cyan
 }
 
 function Main {
@@ -103,7 +118,7 @@ function Main {
     Enable-Versioning
     New-StateContainer
     Add-ResourceGroupLock
-    Show-BackendConfig
+    New-BackendConfigs
 }
 
 Main
