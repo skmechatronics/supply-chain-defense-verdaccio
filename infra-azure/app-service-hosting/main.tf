@@ -5,9 +5,7 @@ module "app_service" {
   location             = var.location
   location_abbr        = var.location_abbr
   resource_group_name  = var.resource_group_name
-  storage_account_name = var.storage_account_name
-  storage_account_key  = var.storage_account_key
-  storage_share_name   = var.storage_share_name
+  storage_share_quota_gb = var.storage_share_quota_gb
   acr_login_server     = var.acr_login_server
   acr_id               = var.acr_id
   docker_registry_url  = var.docker_registry_url

@@ -21,20 +21,10 @@ variable "resource_group_name" {
   type        = string
 }
 
-variable "storage_account_name" {
-  description = "Storage account name for the Azure Files mount. Copy from: terraform output -raw storage_account_name (in shared/)."
-  type        = string
-}
-
-variable "storage_account_key" {
-  description = "Storage account access key. Copy from: terraform output -raw storage_account_key (in shared/)."
-  type        = string
-  sensitive   = true
-}
-
-variable "storage_share_name" {
-  description = "Azure Files share name. Copy from: terraform output -raw storage_share_name (in shared/)."
-  type        = string
+variable "storage_share_quota_gb" {
+  description = "Azure Files share size in GB."
+  type        = number
+  default     = 5
 }
 
 variable "acr_login_server" {

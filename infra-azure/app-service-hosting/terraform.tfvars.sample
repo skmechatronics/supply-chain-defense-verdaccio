@@ -4,12 +4,12 @@ location      = "australiaeast"
 location_abbr = "ause"
 
 # From: terraform output (run in shared/)
-resource_group_name  = "vdcd-rg-ause"
-storage_account_name = "vdcdstaccause"
-storage_account_key  = "<copy from: terraform output -raw storage_account_key>"
-storage_share_name   = "verdaccio-storage"
-acr_login_server     = "vdcdacrause.azurecr.io"
-acr_id               = "/subscriptions/<subscription-id>/resourceGroups/vdcd-rg-ause/providers/Microsoft.ContainerRegistry/registries/vdcdacrause"
+resource_group_name = "vdcd-rg-ause"
+acr_login_server    = "vdcdacrause.azurecr.io"
+acr_id              = "/subscriptions/<subscription-id>/resourceGroups/vdcd-rg-ause/providers/Microsoft.ContainerRegistry/registries/vdcdacrause"
+
+# Storage (created by this module alongside the App Service)
+storage_share_quota_gb = 5
 
 # App Service
 sku_name = "B1"
