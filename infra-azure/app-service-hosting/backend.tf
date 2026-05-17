@@ -6,12 +6,7 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    resource_group_name  = "vdcd-rg-tfstate-ause"
-    storage_account_name = "vdcdtfstateause"
-    container_name       = "tfstate"
-    key                  = "app-service.tfstate"
-  }
+  backend "azurerm" {}
 }
 
 provider "azurerm" {

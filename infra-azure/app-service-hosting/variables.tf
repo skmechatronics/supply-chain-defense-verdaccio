@@ -28,8 +28,3 @@ variable "sku_name" {
   default     = "B1"
 }
 
-variable "storage_share_quota_gb" {
-  description = "Azure Files share size in GB."
-  type        = number
-  default     = 5
-}
