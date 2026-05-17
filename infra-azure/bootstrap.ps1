@@ -17,8 +17,8 @@ param(
 $ErrorActionPreference = "Stop"
 $ResourceGroup  = "$Prefix-rg-tfstate-$LocationAbbr"
 $StorageAccount = "${Prefix}tfstate${LocationAbbr}"
-$Container      = "tfstate"
 $LockName       = "$ResourceGroup-lock"
+$Containers     = @("shared", "app-service-hosting")
 
 function Write-Step { param([string]$Message); Write-Host $Message -ForegroundColor Yellow }
 function Write-Ok   { param([string]$Message); Write-Host $Message -ForegroundColor Green }
@@ -69,14 +69,16 @@ function Enable-Versioning {
     Write-Ok "Blob versioning enabled."
 }
 
-function New-StateContainer {
-    Write-Step "Creating blob container: $Container"
-    az storage container create `
-        --name $Container `
-        --account-name $StorageAccount `
-        --auth-mode login | Out-Null
-    if ($LASTEXITCODE -ne 0) { Write-Fail "Failed to create container."; exit 1 }
-    Write-Ok "Container ready: $Container"
+function New-StateContainers {
+    foreach ($container in $Containers) {
+        Write-Step "Creating blob container: $container"
+        az storage container create `
+            --name $container `
+            --account-name $StorageAccount `
+            --auth-mode login | Out-Null
+        if ($LASTEXITCODE -ne 0) { Write-Fail "Failed to create container: $container"; exit 1 }
+        Write-Ok "Container ready: $container"
+    }
 }
 
 function Add-ResourceGroupLock {
@@ -106,7 +108,6 @@ function New-BackendConfigs {
         $content = Get-Content $samplePath -Raw
         $content = $content -replace "\{\{RESOURCE_GROUP_NAME\}\}", $ResourceGroup
         $content = $content -replace "\{\{STORAGE_ACCOUNT_NAME\}\}", $StorageAccount
-        $content = $content -replace "\{\{CONTAINER_NAME\}\}",       $Container
 
         Set-Content -Path $outputPath -Value $content -NoNewline
         Write-Ok "Generated: $outputPath"
@@ -122,7 +123,7 @@ function Main {
     New-StateResourceGroup
     New-StateStorageAccount
     Enable-Versioning
-    New-StateContainer
+    New-StateContainers
     Add-ResourceGroupLock
     New-BackendConfigs
 }
