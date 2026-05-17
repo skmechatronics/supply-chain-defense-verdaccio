@@ -35,20 +35,13 @@ variable "storage_share_name" {
 }
 
 variable "acr_login_server" {
-  description = "ACR login server URL (e.g. vdcdacrause.azurecr.io)."
+  description = "ACR login server hostname (e.g. vdcdacrause.azurecr.io)."
   type        = string
 }
 
-variable "acr_admin_username" {
-  description = "ACR admin username."
+variable "acr_id" {
+  description = "ACR resource ID — used to scope the AcrPull role assignment."
   type        = string
-  sensitive   = true
-}
-
-variable "acr_admin_password" {
-  description = "ACR admin password."
-  type        = string
-  sensitive   = true
 }
 
 variable "verdaccio_image_tag" {

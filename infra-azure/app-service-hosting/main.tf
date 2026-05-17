@@ -19,8 +19,7 @@ module "app_service" {
   storage_account_key  = data.terraform_remote_state.shared.outputs.storage_account_key
   storage_share_name   = data.terraform_remote_state.shared.outputs.storage_share_name
   acr_login_server     = data.terraform_remote_state.shared.outputs.acr_login_server
-  acr_admin_username   = data.terraform_remote_state.shared.outputs.acr_admin_username
-  acr_admin_password   = data.terraform_remote_state.shared.outputs.acr_admin_password
+  acr_id               = data.terraform_remote_state.shared.outputs.acr_id
   verdaccio_image_tag  = var.verdaccio_image_tag
   sku_name             = var.sku_name
 }

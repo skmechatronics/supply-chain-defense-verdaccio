@@ -23,12 +23,7 @@ output "acr_login_server" {
   value = module.common.acr_login_server
 }
 
-output "acr_admin_username" {
-  value     = module.common.acr_admin_username
-  sensitive = true
+output "acr_id" {
+  value = module.common.acr_id
 }
 
-output "acr_admin_password" {
-  value     = module.common.acr_admin_password
-  sensitive = true
-}

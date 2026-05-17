@@ -12,12 +12,14 @@ resource "azurerm_linux_web_app" "verdaccio" {
   location            = var.location
   service_plan_id     = azurerm_service_plan.main.id
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   site_config {
     application_stack {
-      docker_image_name        = "verdaccio-cooldown:${var.verdaccio_image_tag}"
-      docker_registry_url      = "https://${var.acr_login_server}"
-      docker_registry_username = var.acr_admin_username
-      docker_registry_password = var.acr_admin_password
+      docker_image_name   = "verdaccio-cooldown:${var.verdaccio_image_tag}"
+      docker_registry_url = "https://${var.acr_login_server}"
     }
   }
 
@@ -35,4 +37,10 @@ resource "azurerm_linux_web_app" "verdaccio" {
     access_key   = var.storage_account_key
     mount_path   = "/verdaccio/storage"
   }
+}
+
+resource "azurerm_role_assignment" "acr_pull" {
+  principal_id         = azurerm_linux_web_app.verdaccio.identity[0].principal_id
+  role_definition_name = "AcrPull"
+  scope                = var.acr_id
 }
