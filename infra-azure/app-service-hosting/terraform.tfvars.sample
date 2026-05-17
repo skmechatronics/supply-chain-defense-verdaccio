@@ -1,7 +1,18 @@
+# Naming
 prefix        = "vdcd"
 location      = "australiaeast"
 location_abbr = "ause"
-sku_name      = "B1"
+
+# From: terraform output (run in shared/)
+resource_group_name  = "vdcd-rg-ause"
+storage_account_name = "vdcdstaccause"
+storage_account_key  = "<copy from: terraform output -raw storage_account_key>"
+storage_share_name   = "verdaccio-storage"
+acr_login_server     = "vdcdacrause.azurecr.io"
+acr_id               = "/subscriptions/<subscription-id>/resourceGroups/vdcd-rg-ause/providers/Microsoft.ContainerRegistry/registries/vdcdacrause"
+
+# App Service
+sku_name = "B1"
 
 # Use MCR placeholder on first deploy (before image is pushed to ACR)
 docker_registry_url = "https://mcr.microsoft.com"
