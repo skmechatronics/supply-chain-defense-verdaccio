@@ -1,3 +1,20 @@
+resource "azurerm_storage_account" "verdaccio" {
+  name                            = "${var.prefix}stacc${var.location_abbr}"
+  resource_group_name             = var.resource_group_name
+  location                        = var.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  min_tls_version                 = "TLS1_2"
+  https_traffic_only_enabled      = true
+  allow_nested_items_to_be_public = false
+}
+
+resource "azurerm_storage_share" "verdaccio" {
+  name               = "verdaccio-storage"
+  storage_account_id = azurerm_storage_account.verdaccio.id
+  quota              = var.storage_share_quota_gb
+}
+
 resource "azurerm_service_plan" "main" {
   name                = "${var.prefix}-asp-${var.location_abbr}"
   resource_group_name = var.resource_group_name
@@ -32,9 +49,9 @@ resource "azurerm_linux_web_app" "verdaccio" {
   storage_account {
     name         = "verdaccio-storage"
     type         = "AzureFiles"
-    account_name = var.storage_account_name
-    share_name   = var.storage_share_name
-    access_key   = var.storage_account_key
+    account_name = azurerm_storage_account.verdaccio.name
+    share_name   = azurerm_storage_share.verdaccio.name
+    access_key   = azurerm_storage_account.verdaccio.primary_access_key
     mount_path   = "/verdaccio/storage"
   }
 }
