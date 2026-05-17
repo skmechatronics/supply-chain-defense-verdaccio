@@ -15,9 +15,3 @@ variable "location_abbr" {
   type        = string
   default     = "ause"
 }
-
-variable "storage_share_quota_gb" {
-  description = "Azure Files share size in GB."
-  type        = number
-  default     = 5
-}
