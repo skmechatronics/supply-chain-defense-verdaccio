@@ -25,7 +25,13 @@ function Write-Ok   { param([string]$Message); Write-Host $Message -ForegroundCo
 function Write-Fail { param([string]$Message); Write-Host $Message -ForegroundColor Red }
 
 function Invoke-Login {
-    Write-Step "Logging in to Azure..."
+    Write-Step "Checking Azure login status..."
+    az account show | Out-Null 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        Write-Ok "Already logged in."
+        return
+    }
+    Write-Step "Not logged in. Running az login..."
     az login
     if ($LASTEXITCODE -ne 0) { Write-Fail "Login failed."; exit 1 }
     Write-Ok "Logged in."
