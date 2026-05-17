@@ -10,14 +10,14 @@ param(
     [ValidateSet("shared", "app-service-hosting")]
     [string]$Module,
 
-    [ValidateSet("init", "plan", "apply", "output")]
+    [ValidateSet("init", "plan", "apply", "output", "destroy")]
     [string]$Action
 )
 
 $ErrorActionPreference = "Stop"
 
 $ValidModules  = @("shared", "app-service-hosting")
-$ValidActions  = @("init", "plan", "apply", "output")
+$ValidActions  = @("init", "plan", "apply", "output", "destroy")
 
 function Write-Step { param([string]$Message); Write-Host $Message -ForegroundColor Yellow }
 function Write-Ok   { param([string]$Message); Write-Host $Message -ForegroundColor Green }
@@ -107,6 +107,10 @@ function Invoke-TerraformAction {
                 Write-Step "Running terraform output..."
                 terraform output
             }
+            "destroy" {
+                Write-Step "Running terraform destroy..."
+                terraform destroy -var-file="terraform.tfvars"
+            }
         }
 
         if ($LASTEXITCODE -ne 0) {
@@ -132,7 +136,7 @@ function Main {
         Assert-BackendConfig -ModuleDir $moduleDir
     }
 
-    if ($resolvedAction -in @("plan", "apply")) {
+    if ($resolvedAction -in @("plan", "apply", "destroy")) {
         Assert-TfVars -ModuleDir $moduleDir
     }
 
