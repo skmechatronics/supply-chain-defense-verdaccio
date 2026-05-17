@@ -13,6 +13,7 @@ Terraform configuration to deploy the Verdaccio cooldown registry on Azure. Host
 
 ```
 bootstrap.ps1              # one-time setup — creates remote state storage and generates backend configs
+deploy.ps1                 # runs terraform init / plan / apply / output for any module
 modules/
   common/                  # resource group, storage account, azure files share, ACR
   app-service/             # linux app service plan + web app with azure files mount
@@ -59,15 +60,22 @@ The script:
 
 ## 2. Deploy shared infrastructure
 
+Use `deploy.ps1` to run Terraform actions against any module. If switches are omitted it will prompt for them.
+
 ```powershell
-cd shared
-cp terraform.tfvars.sample terraform.tfvars  # edit if needed
-terraform init -backend-config="backend.hcl"
-terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars"
+.\deploy.ps1 -Module shared -Action init
+.\deploy.ps1 -Module shared -Action plan
+.\deploy.ps1 -Module shared -Action apply
+.\deploy.ps1 -Module shared -Action output
 ```
 
-This provisions the resource group, Azure Files share, and ACR (`vdcdacrause`). Note the ACR login server from the outputs — you'll need it in the next step.
+Or just run `.\deploy.ps1` and follow the prompts.
+
+`deploy.ps1` will:
+- Error early if `backend.hcl` is missing (tells you to run bootstrap first)
+- Copy `terraform.tfvars.sample` to `terraform.tfvars` automatically if it doesn't exist, then pause so you can review it before continuing
+
+This provisions the resource group, Azure Files share, and ACR (`vdcdacrause`). Check the outputs for the ACR login server name.
 
 ## 3. Build and push the Verdaccio image
 
@@ -80,14 +88,12 @@ docker push vdcdacrause.azurecr.io/verdaccio-cooldown:0.1.0
 ## 4. Deploy App Service hosting
 
 ```powershell
-cd app-service-hosting
-cp terraform.tfvars.sample terraform.tfvars  # set verdaccio_image_tag to match what you pushed
-terraform init -backend-config="backend.hcl"
-terraform plan -var-file="terraform.tfvars"
-terraform apply -var-file="terraform.tfvars"
+.\deploy.ps1 -Module app-service-hosting -Action init
+.\deploy.ps1 -Module app-service-hosting -Action plan
+.\deploy.ps1 -Module app-service-hosting -Action apply
 ```
 
-The App Service reads shared infrastructure (ACR credentials, storage account, resource group) directly from the `shared/` Terraform state via a remote state data source — no manual wiring needed.
+Set `verdaccio_image_tag` in `terraform.tfvars` to match the tag you pushed in step 3. The App Service reads shared infrastructure (ACR credentials, storage account, resource group) directly from the `shared/` Terraform state — no manual wiring needed.
 
 ## Naming convention
 
