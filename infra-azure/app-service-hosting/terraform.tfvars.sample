@@ -1,5 +1,12 @@
-prefix                 = "vdcd"
-location               = "australiaeast"
-location_abbr          = "ause"
-verdaccio_image_tag    = "0.1.0"
-sku_name               = "B1"
+prefix        = "vdcd"
+location      = "australiaeast"
+location_abbr = "ause"
+sku_name      = "B1"
+
+# Use MCR placeholder on first deploy (before image is pushed to ACR)
+docker_registry_url = "https://mcr.microsoft.com"
+docker_image_name   = "appsvc/staticsite:latest"
+
+# Switch to ACR image once pushed:
+# docker_registry_url = "https://vdcdacrause.azurecr.io"
+# docker_image_name   = "verdaccio-cooldown:0.1.0"

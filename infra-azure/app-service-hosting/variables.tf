@@ -16,10 +16,16 @@ variable "location_abbr" {
   default     = "ause"
 }
 
-variable "verdaccio_image_tag" {
-  description = "Tag of the verdaccio-cooldown image to deploy from ACR."
+variable "docker_registry_url" {
+  description = "Docker registry URL. Defaults to MCR placeholder — override with ACR URL once image is pushed."
   type        = string
-  default     = "latest"
+  default     = "https://mcr.microsoft.com"
+}
+
+variable "docker_image_name" {
+  description = "Image name and tag to deploy. Defaults to MCR placeholder — override with ACR image once pushed."
+  type        = string
+  default     = "appsvc/staticsite:latest"
 }
 
 variable "sku_name" {

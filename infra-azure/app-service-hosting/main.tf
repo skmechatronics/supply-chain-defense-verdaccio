@@ -20,6 +20,7 @@ module "app_service" {
   storage_share_name   = data.terraform_remote_state.shared.outputs.storage_share_name
   acr_login_server     = data.terraform_remote_state.shared.outputs.acr_login_server
   acr_id               = data.terraform_remote_state.shared.outputs.acr_id
-  verdaccio_image_tag  = var.verdaccio_image_tag
+  docker_registry_url  = var.docker_registry_url
+  docker_image_name    = var.docker_image_name
   sku_name             = var.sku_name
 }
