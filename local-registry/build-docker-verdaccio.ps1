@@ -65,6 +65,10 @@ function Build-Image {
     Write-Success "Image built: $ImageName"
 }
 
+function Ensure-Directories {
+    New-Item -ItemType Directory -Force "$PSScriptRoot\storage" | Out-Null
+}
+
 function Start-Container {
     Write-Progress-Step "Starting container: $ContainerName"
     docker run -d `
@@ -96,6 +100,7 @@ function Wait-ForVerdaccio {
 }
 
 function Main {
+    Ensure-Directories
     Update-ConfigCooldown
     Remove-ExistingContainer
     Build-Image
