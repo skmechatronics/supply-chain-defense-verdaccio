@@ -1,11 +1,11 @@
 # infra-azure
 
-Terraform configuration to deploy the Verdaccio cooldown registry on Azure. Hosting options are independent — pick one and deploy it. Both use the same shared infrastructure (ACR, storage, resource group) provisioned by `shared/`.
+OpenTofu configuration to deploy the Verdaccio cooldown registry on Azure. Hosting options are independent — pick one and deploy it. Shared infrastructure (resource group, ACR) is provisioned by `shared/` first.
 
 ## Prerequisites
 
 - Azure CLI 2.58.0+
-- Terraform 1.x
+- OpenTofu 1.12.0+ — install via [tenv](https://github.com/tofuutils/tenv): `winget install tofuutils.tenv`
 - An active Azure subscription
 - Docker (to build and push the Verdaccio image to ACR)
 
@@ -13,11 +13,10 @@ Terraform configuration to deploy the Verdaccio cooldown registry on Azure. Host
 
 ```
 bootstrap.ps1              # one-time setup — creates remote state storage and generates backend configs
-deploy.ps1                 # runs terraform init / plan / apply / output for any module
+deploy.ps1                 # runs tofu init / plan / apply / output / destroy for any module
 modules/
-  common/                  # resource group, storage account, azure files share, ACR
-  app-service/             # linux app service plan + web app with azure files mount
-shared/                    # root module — provisions common infra, deployed first
+  app-service/             # storage account, azure files share, linux app service plan + web app
+shared/                    # root module — provisions resource group and ACR, deployed first
   backend.hcl.sample       # backend config template, populated by bootstrap.ps1
 app-service-hosting/       # root module — deploys verdaccio on App Service
   backend.hcl.sample       # backend config template, populated by bootstrap.ps1
@@ -27,16 +26,16 @@ app-service-hosting/       # root module — deploys verdaccio on App Service
 
 ```
 1. bootstrap.ps1          → creates Azure state storage + generates backend.hcl files
-2. shared/                → provisions ACR, storage, resource group
+2. shared/                → provisions resource group and ACR
 3. build + push image     → push verdaccio-cooldown image to ACR
-4. app-service-hosting/   → deploys App Service, pulls image from ACR
+4. app-service-hosting/   → deploys storage account, Azure Files share, and App Service
 ```
 
 Steps 1 and 2 are one-time. Step 3 is repeated whenever the image changes. Step 4 is re-applied to update the running service.
 
 ## 1. Bootstrap
 
-Run once before anything else. Creates the Azure Storage account used as the Terraform remote state backend, then generates `backend.hcl` from the templates in each module directory.
+Run once before anything else. Creates the Azure Storage account used as the OpenTofu remote state backend, then generates `backend.hcl` from the templates in each module directory.
 
 ```powershell
 .\bootstrap.ps1
@@ -50,9 +49,9 @@ With a non-default region or prefix:
 
 The script:
 - Logs in to Azure (skips if already authenticated)
-- Creates a dedicated resource group for Terraform state (`vdcd-rg-tfstate-ause`)
+- Creates a dedicated resource group for OpenTofu state (`vdcd-rg-tfstate-ause`)
 - Creates a storage account with blob versioning enabled (`vdcdtfstateause`)
-- Creates a `tfstate` blob container
+- Creates separate blob containers per module (`shared`, `app-service-hosting`)
 - Applies a `CanNotDelete` lock on the state resource group
 - Generates `backend.hcl` in `shared/` and `app-service-hosting/` from their `backend.hcl.sample` templates
 
@@ -60,7 +59,7 @@ The script:
 
 ## 2. Deploy shared infrastructure
 
-Use `deploy.ps1` to run Terraform actions against any module. If switches are omitted it will prompt for them.
+Use `deploy.ps1` to run OpenTofu actions against any module. If switches are omitted it will prompt for them.
 
 ```powershell
 .\deploy.ps1 -Module shared -Action init
@@ -75,7 +74,7 @@ Or just run `.\deploy.ps1` and follow the prompts.
 - Error early if `backend.hcl` is missing (tells you to run bootstrap first)
 - Copy `terraform.tfvars.sample` to `terraform.tfvars` automatically if it doesn't exist, then pause so you can review it before continuing
 
-This provisions the resource group, Azure Files share, and ACR (`vdcdacrause`). Check the outputs for the ACR login server name.
+This provisions the resource group and ACR (`vdcdacrause`). Check the outputs for the ACR login server name.
 
 ## 3. Build and push the Verdaccio image
 
@@ -87,13 +86,15 @@ docker push vdcdacrause.azurecr.io/verdaccio-cooldown:0.1.0
 
 ## 4. Deploy App Service hosting
 
+Copy the outputs from step 2 into `app-service-hosting/terraform.tfvars`, then:
+
 ```powershell
 .\deploy.ps1 -Module app-service-hosting -Action init
 .\deploy.ps1 -Module app-service-hosting -Action plan
 .\deploy.ps1 -Module app-service-hosting -Action apply
 ```
 
-Set `verdaccio_image_tag` in `terraform.tfvars` to match the tag you pushed in step 3. The App Service reads shared infrastructure (ACR credentials, storage account, resource group) directly from the `shared/` Terraform state — no manual wiring needed.
+This creates the storage account, Azure Files share, App Service Plan, and Web App in the resource group provisioned by `shared/`. The App Service uses a system-assigned managed identity with AcrPull access — no credentials stored in state.
 
 ## Naming convention
 

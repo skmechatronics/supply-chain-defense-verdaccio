@@ -26,6 +26,6 @@ infra-azure/       # Terraform for Azure hosting (App Service + Azure Files)
 |---|---|---|
 | Local dev | Time-gated registry with verification scripts | Done |
 | Demo app | Express app with `/packages` endpoint, pointed at the local registry | Planned |
-| Azure infra | Terraform: App Service + Azure Files mount | Planned |
+| Azure infra | OpenTofu: App Service + Azure Files mount | Planned |
 | Override mechanism | API or config flag to bypass the cooldown for a named package | Planned |
 | AWS | Equivalent Terraform for AWS (App Runner or ECS) | Future |
