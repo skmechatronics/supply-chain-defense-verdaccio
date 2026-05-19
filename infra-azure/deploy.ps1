@@ -1,5 +1,5 @@
 # deploy.ps1
-# Runs Terraform actions against a root module.
+# Runs OpenTofu actions against a root module.
 #
 # Usage:
 #   .\deploy.ps1                                      # prompts for module and action
@@ -85,40 +85,40 @@ function Assert-TfVars {
     }
 }
 
-function Invoke-TerraformAction {
+function Invoke-TofuAction {
     param([string]$ModuleDir, [string]$TfAction)
 
     Push-Location $ModuleDir
     try {
         switch ($TfAction) {
             "init" {
-                Write-Step "Running terraform init..."
-                terraform init -backend-config="backend.hcl"
+                Write-Step "Running tofu init..."
+                tofu init -backend-config="backend.hcl"
             }
             "plan" {
-                Write-Step "Running terraform plan..."
-                terraform plan -var-file="terraform.tfvars"
+                Write-Step "Running tofu plan..."
+                tofu plan -var-file="terraform.tfvars"
             }
             "apply" {
-                Write-Step "Running terraform apply..."
-                terraform apply -var-file="terraform.tfvars"
+                Write-Step "Running tofu apply..."
+                tofu apply -var-file="terraform.tfvars"
             }
             "output" {
-                Write-Step "Running terraform output..."
-                terraform output
+                Write-Step "Running tofu output..."
+                tofu output
             }
             "destroy" {
-                Write-Step "Running terraform destroy..."
-                terraform destroy -var-file="terraform.tfvars"
+                Write-Step "Running tofu destroy..."
+                tofu destroy -var-file="terraform.tfvars"
             }
         }
 
         if ($LASTEXITCODE -ne 0) {
-            Write-Fail "terraform $TfAction failed."
+            Write-Fail "tofu $TfAction failed."
             exit 1
         }
 
-        Write-Ok "terraform $TfAction completed."
+        Write-Ok "tofu $TfAction completed."
     } finally {
         Pop-Location
     }
@@ -140,7 +140,7 @@ function Main {
         Assert-TfVars -ModuleDir $moduleDir
     }
 
-    Invoke-TerraformAction -ModuleDir $moduleDir -TfAction $resolvedAction
+    Invoke-TofuAction -ModuleDir $moduleDir -TfAction $resolvedAction
 }
 
 Main
