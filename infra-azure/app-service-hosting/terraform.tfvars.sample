@@ -1,12 +1,7 @@
-# Naming
+# Naming — all other resource names are derived from these
 prefix        = "vdcd"
 location      = "australiaeast"
 location_abbr = "ause"
-
-# From: terraform output (run in shared/)
-resource_group_name = "vdcd-rg-ause"
-acr_login_server    = "vdcdacrause.azurecr.io"
-acr_id              = "/subscriptions/<subscription-id>/resourceGroups/vdcd-rg-ause/providers/Microsoft.ContainerRegistry/registries/vdcdacrause"
 
 # Storage (created by this module alongside the App Service)
 storage_share_quota_gb = 5

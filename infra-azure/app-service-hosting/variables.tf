@@ -16,25 +16,10 @@ variable "location_abbr" {
   default     = "ause"
 }
 
-variable "resource_group_name" {
-  description = "Resource group to deploy into. Copy from: terraform output -raw resource_group_name (in shared/)."
-  type        = string
-}
-
 variable "storage_share_quota_gb" {
   description = "Azure Files share size in GB."
   type        = number
   default     = 5
-}
-
-variable "acr_login_server" {
-  description = "ACR login server hostname. Copy from: terraform output -raw acr_login_server (in shared/)."
-  type        = string
-}
-
-variable "acr_id" {
-  description = "ACR resource ID. Copy from: terraform output -raw acr_id (in shared/)."
-  type        = string
 }
 
 variable "docker_registry_url" {

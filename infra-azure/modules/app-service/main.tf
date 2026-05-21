@@ -1,6 +1,15 @@
+locals {
+  resource_group_name = "${var.prefix}-rg-${var.location_abbr}"
+}
+
+data "azurerm_container_registry" "main" {
+  name                = "${var.prefix}acr${var.location_abbr}"
+  resource_group_name = local.resource_group_name
+}
+
 resource "azurerm_storage_account" "verdaccio" {
   name                            = "${var.prefix}stacc${var.location_abbr}"
-  resource_group_name             = var.resource_group_name
+  resource_group_name             = local.resource_group_name
   location                        = var.location
   account_tier                    = "Standard"
   account_replication_type        = "LRS"
@@ -17,7 +26,7 @@ resource "azurerm_storage_share" "verdaccio" {
 
 resource "azurerm_service_plan" "main" {
   name                = "${var.prefix}-asp-${var.location_abbr}"
-  resource_group_name = var.resource_group_name
+  resource_group_name = local.resource_group_name
   location            = var.location
   os_type             = "Linux"
   sku_name            = var.sku_name
@@ -25,7 +34,7 @@ resource "azurerm_service_plan" "main" {
 
 resource "azurerm_linux_web_app" "verdaccio" {
   name                = "${var.prefix}-app-${var.location_abbr}"
-  resource_group_name = var.resource_group_name
+  resource_group_name = local.resource_group_name
   location            = var.location
   service_plan_id     = azurerm_service_plan.main.id
 
@@ -59,5 +68,5 @@ resource "azurerm_linux_web_app" "verdaccio" {
 resource "azurerm_role_assignment" "acr_pull" {
   principal_id         = azurerm_linux_web_app.verdaccio.identity[0].principal_id
   role_definition_name = "AcrPull"
-  scope                = var.acr_id
+  scope                = data.azurerm_container_registry.main.id
 }

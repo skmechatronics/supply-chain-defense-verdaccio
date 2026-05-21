@@ -1,37 +1,25 @@
 variable "prefix" {
   description = "Resource naming prefix."
   type        = string
+  default     = "vdcd"
 }
 
 variable "location" {
   description = "Azure region."
   type        = string
+  default     = "australiaeast"
 }
 
 variable "location_abbr" {
   description = "Short region code used in resource names (e.g. ause, eus)."
   type        = string
-}
-
-variable "resource_group_name" {
-  description = "Name of the resource group to deploy into."
-  type        = string
+  default     = "ause"
 }
 
 variable "storage_share_quota_gb" {
   description = "Azure Files share size in GB."
   type        = number
   default     = 5
-}
-
-variable "acr_login_server" {
-  description = "ACR login server hostname (e.g. vdcdacrause.azurecr.io)."
-  type        = string
-}
-
-variable "acr_id" {
-  description = "ACR resource ID — used to scope the AcrPull role assignment."
-  type        = string
 }
 
 variable "docker_registry_url" {

@@ -5,3 +5,7 @@ output "app_url" {
 output "app_name" {
   value = azurerm_linux_web_app.verdaccio.name
 }
+
+output "acr_login_server" {
+  value = data.azurerm_container_registry.main.login_server
+}
