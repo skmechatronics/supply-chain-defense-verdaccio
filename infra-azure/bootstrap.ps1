@@ -1,6 +1,6 @@
 # bootstrap.ps1
 # Creates the Azure Storage backend for Terraform state.
-# Run once before any terraform init/plan/apply.
+# Run once before any tofu init/plan/apply.
 #
 # Prerequisites: Azure CLI 2.58.0+
 #
@@ -114,8 +114,8 @@ function New-BackendConfigs {
     }
 
     Write-Host ""
-    Write-Host "Run terraform init in each module with:" -ForegroundColor Cyan
-    Write-Host "  terraform init -backend-config=backend.hcl" -ForegroundColor Cyan
+    Write-Host "Run tofu init in each module with:" -ForegroundColor Cyan
+    Write-Host "  tofu init -backend-config=backend.hcl" -ForegroundColor Cyan
 }
 
 function Main {
