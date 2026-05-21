@@ -3,5 +3,5 @@ output "app_url" {
 }
 
 output "acr_login_server" {
-  value = module.common.acr_login_server
+  value = var.acr_login_server
 }
