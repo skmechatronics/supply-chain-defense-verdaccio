@@ -1,0 +1,36 @@
+storage: /verdaccio/storage
+plugins: /verdaccio/plugins
+
+web:
+  enable: true
+  title: Verdaccio Cooldown Registry
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    timeout: 30s
+
+packages:
+  '@*/*':
+    access: $all
+    proxy: npmjs
+
+  '**':
+    access: $all
+    proxy: npmjs
+
+filters:
+  '@verdaccio/package-filter':
+    minAgeDays: {{MIN_AGE_DAYS}}
+
+server:
+  keepAliveTimeout: 60
+
+middlewares:
+  audit:
+    enabled: true
+
+log:
+  type: stdout
+  format: pretty
+  level: http
