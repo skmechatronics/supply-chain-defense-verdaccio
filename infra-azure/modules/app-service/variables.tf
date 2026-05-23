@@ -22,6 +22,12 @@ variable "storage_share_quota_gb" {
   default     = 5
 }
 
+variable "allowed_cidr_ranges" {
+  description = "CIDR blocks allowed to reach the registry. Empty list = no restriction (not recommended for production)."
+  type        = list(string)
+  default     = []
+}
+
 variable "docker_registry_url" {
   description = "Docker registry URL. Defaults to MCR placeholder — override with ACR URL once image is pushed."
   type        = string

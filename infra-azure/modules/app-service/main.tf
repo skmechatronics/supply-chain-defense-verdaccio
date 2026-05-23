@@ -1,5 +1,6 @@
 locals {
-  resource_group_name = "${var.prefix}-rg-${var.location_abbr}"
+  resource_group_name           = "${var.prefix}-rg-${var.location_abbr}"
+  ip_restriction_default_action = length(var.allowed_cidr_ranges) > 0 ? "Deny" : "Allow"
 }
 
 data "azurerm_container_registry" "main" {
@@ -46,6 +47,18 @@ resource "azurerm_linux_web_app" "verdaccio" {
     application_stack {
       docker_image_name   = var.docker_image_name
       docker_registry_url = var.docker_registry_url
+    }
+
+    ip_restriction_default_action = local.ip_restriction_default_action
+
+    dynamic "ip_restriction" {
+      for_each = var.allowed_cidr_ranges
+      content {
+        ip_address = ip_restriction.value
+        action     = "Allow"
+        priority   = 100 + ip_restriction.key
+        name       = "allow-${ip_restriction.key}"
+      }
     }
   }
 
