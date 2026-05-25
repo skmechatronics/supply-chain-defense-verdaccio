@@ -1,0 +1,3 @@
+# Copy this file to .npmrc and fill in your registry URL.
+# registry=https://<your-verdaccio-host>
+registry=https://vdcd-app-ause.azurewebsites.net
