@@ -19,6 +19,7 @@ infra-azure/       # Terraform for Azure hosting (App Service + Azure Files)
 
 - [Local registry](local-registry/README.md) — run the time-gated registry locally
 - [Azure infrastructure](infra-azure/README.md) — deploy to Azure
+- [Vetting checklist](VETTING.md) — trust boundary and audit trail for Verdaccio and its plugins
 
 ## Roadmap
 
