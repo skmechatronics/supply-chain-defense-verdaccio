@@ -24,7 +24,7 @@ packages:
     proxy: npmjs
 
 filters:
-  '@verdaccio/package-filter':
+  cooldown-filter:
     minAgeDays: {{MIN_AGE_DAYS}}
 
 log:
