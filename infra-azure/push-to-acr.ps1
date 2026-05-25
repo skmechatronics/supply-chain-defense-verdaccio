@@ -1,7 +1,9 @@
 # push-to-acr.ps1
-# Builds the Verdaccio image, pushes it to ACR, and applies app-service-hosting.
+# Builds the Verdaccio image, pushes it to ACR, and updates the App Service container config.
+# After the first run, image config lives outside Terraform — subsequent pushes update the
+# App Service directly without a tofu apply.
 #
-# Prerequisites: Azure CLI 2.58.0+, Docker, OpenTofu (via tenv)
+# Prerequisites: Azure CLI 2.58.0+, Docker
 #
 # Usage:
 #   .\push-to-acr.ps1 -Tag 0.1.0
@@ -18,11 +20,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$AcrName      = "${Prefix}acr${LocationAbbr}"
-$ImageRepo    = "verdaccio-cooldown"
-$FullImage    = "${AcrName}.azurecr.io/${ImageRepo}:${Tag}"
-$BuildContext = Join-Path $PSScriptRoot "..\verdaccio-image"
-$TfVarsPath   = Join-Path $PSScriptRoot "app-service-hosting\terraform.tfvars"
+$AcrName       = "${Prefix}acr${LocationAbbr}"
+$AppName       = "${Prefix}-app-${LocationAbbr}"
+$ResourceGroup = "${Prefix}-rg-${LocationAbbr}"
+$ImageRepo     = "verdaccio-cooldown"
+$FullImage     = "${AcrName}.azurecr.io/${ImageRepo}:${Tag}"
+$BuildContext  = Join-Path $PSScriptRoot "..\verdaccio-image"
 
 function Write-Step { param([string]$Message); Write-Host $Message -ForegroundColor Yellow }
 function Write-Ok   { param([string]$Message); Write-Host $Message -ForegroundColor Green }
@@ -42,12 +45,11 @@ docker push $FullImage
 if ($LASTEXITCODE -ne 0) { Write-Fail "Docker push failed."; exit 1 }
 Write-Ok "Push complete."
 
-Write-Step "Updating terraform.tfvars..."
-$content = Get-Content $TfVarsPath
-$content = $content -replace '^docker_registry_url\s*=.*', "docker_registry_url = `"https://${AcrName}.azurecr.io`""
-$content = $content -replace '^docker_image_name\s*=.*',   "docker_image_name   = `"${ImageRepo}:${Tag}`""
-Set-Content $TfVarsPath $content
-Write-Ok "terraform.tfvars updated."
-
-Write-Step "Applying app-service-hosting..."
-& "$PSScriptRoot\deploy.ps1" -Module app-service-hosting -Action apply
+Write-Step "Updating App Service container config: $AppName"
+az webapp config container set `
+    --name $AppName `
+    --resource-group $ResourceGroup `
+    --docker-custom-image-name $FullImage `
+    --docker-registry-server-url "https://${AcrName}.azurecr.io"
+if ($LASTEXITCODE -ne 0) { Write-Fail "Failed to update App Service container config."; exit 1 }
+Write-Ok "App Service updated. Image: $FullImage"

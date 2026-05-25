@@ -78,14 +78,14 @@ This provisions the resource group and ACR (`vdcdacrause`). Check the outputs fo
 
 ## 3. Build and push the Verdaccio image
 
-Use `push-to-acr.ps1` — it builds from `verdaccio-image/`, pushes to ACR, updates tfvars, and applies `app-service-hosting` in one step:
+Use `push-to-acr.ps1` — it builds from `verdaccio-image/`, pushes to ACR, and updates the App Service container config directly via Azure CLI:
 
 ```powershell
 .\push-to-acr.ps1 -Tag 0.1.0
-.\push-to-acr.ps1 -Tag 0.1.0 -MinAgeDays 14
+.\push-to-acr.ps1 -Tag 0.2.0 -MinAgeDays 14
 ```
 
-Step 4 below is handled automatically by `push-to-acr.ps1`. Run it manually only if you need finer control.
+After the first push, image config lives outside Terraform. Subsequent image updates are handled by `push-to-acr.ps1` alone — no `tofu apply` needed. Terraform manages infrastructure (App Service Plan, storage, networking); the running image is managed separately.
 
 ## 4. Deploy App Service hosting
 
