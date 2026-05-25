@@ -1,4 +1,4 @@
-storage: /verdaccio/storage
+storage: /tmp/verdaccio-storage
 plugins: /verdaccio/plugins
 
 web:
@@ -9,6 +9,7 @@ uplinks:
   npmjs:
     url: https://registry.npmjs.org/
     timeout: 30s
+    maxage: 1h
 
 packages:
   '@*/*':

@@ -8,23 +8,6 @@ data "azurerm_container_registry" "main" {
   resource_group_name = local.resource_group_name
 }
 
-resource "azurerm_storage_account" "verdaccio" {
-  name                            = "${var.prefix}stacc${var.location_abbr}"
-  resource_group_name             = local.resource_group_name
-  location                        = var.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  min_tls_version                 = "TLS1_2"
-  https_traffic_only_enabled      = true
-  allow_nested_items_to_be_public = false
-}
-
-resource "azurerm_storage_container" "verdaccio" {
-  name                 = "verdaccio-storage"
-  storage_account_id   = azurerm_storage_account.verdaccio.id
-  container_access_type = "private"
-}
-
 resource "azurerm_service_plan" "main" {
   name                = "${var.prefix}-asp-${var.location_abbr}"
   resource_group_name = local.resource_group_name
@@ -53,6 +36,7 @@ resource "azurerm_linux_web_app" "verdaccio" {
       docker_registry_url = var.docker_registry_url
     }
 
+    always_on                               = true
     container_registry_use_managed_identity = true
     ip_restriction_default_action           = local.ip_restriction_default_action
 
@@ -68,19 +52,10 @@ resource "azurerm_linux_web_app" "verdaccio" {
   }
 
   app_settings = {
-    VERDACCIO_PORT                       = "4873"
-    WEBSITES_PORT                        = "4873"
-    DOCKER_ENABLE_CI                     = "true"
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE  = "false"
-  }
-
-  storage_account {
-    name         = "verdaccio-storage"
-    type         = "AzureBlob"
-    account_name = azurerm_storage_account.verdaccio.name
-    share_name   = azurerm_storage_container.verdaccio.name
-    access_key   = azurerm_storage_account.verdaccio.primary_access_key
-    mount_path   = "/verdaccio/storage"
+    VERDACCIO_PORT                      = "4873"
+    WEBSITES_PORT                       = "4873"
+    DOCKER_ENABLE_CI                    = "true"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
   }
 }
 
