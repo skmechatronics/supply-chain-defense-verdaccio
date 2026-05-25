@@ -49,7 +49,6 @@ Write-Step "Updating App Service container config: $AppName"
 az webapp config container set `
     --name $AppName `
     --resource-group $ResourceGroup `
-    --docker-custom-image-name $FullImage `
-    --docker-registry-server-url "https://${AcrName}.azurecr.io"
+    --docker-custom-image-name $FullImage
 if ($LASTEXITCODE -ne 0) { Write-Fail "Failed to update App Service container config."; exit 1 }
 Write-Ok "App Service updated. Image: $FullImage"

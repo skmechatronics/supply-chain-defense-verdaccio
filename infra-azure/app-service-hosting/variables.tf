@@ -16,12 +16,6 @@ variable "location_abbr" {
   default     = "ause"
 }
 
-variable "storage_share_quota_gb" {
-  description = "Azure Files share size in GB."
-  type        = number
-  default     = 5
-}
-
 variable "allowed_cidr_ranges" {
   description = "CIDR blocks allowed to reach the registry. At least one range must be specified."
   type        = list(string)
