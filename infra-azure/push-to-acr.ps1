@@ -13,9 +13,11 @@ param(
     [Parameter(Mandatory)]
     [string]$Tag,
 
-    [int]$MinAgeDays      = 7,
-    [string]$Prefix       = "vdcd",
-    [string]$LocationAbbr = "ause"
+    [int]$MinAgeDays          = 7,
+    [string]$PackageBlocks    = "",
+    [string]$PackageOverrides = "",
+    [string]$Prefix           = "vdcd",
+    [string]$LocationAbbr     = "ause"
 )
 
 $ErrorActionPreference = "Stop"
@@ -52,3 +54,12 @@ az webapp config container set `
     --docker-custom-image-name $FullImage
 if ($LASTEXITCODE -ne 0) { Write-Fail "Failed to update App Service container config."; exit 1 }
 Write-Ok "App Service updated. Image: $FullImage"
+
+$appSettings = @("PACKAGE_BLOCKS=$PackageBlocks", "PACKAGE_OVERRIDES=$PackageOverrides")
+Write-Step "Updating app settings (PACKAGE_BLOCKS, PACKAGE_OVERRIDES)"
+az webapp config appsettings set `
+    --name $AppName `
+    --resource-group $ResourceGroup `
+    --settings @appSettings | Out-Null
+if ($LASTEXITCODE -ne 0) { Write-Fail "Failed to update app settings."; exit 1 }
+Write-Ok "App settings updated."
