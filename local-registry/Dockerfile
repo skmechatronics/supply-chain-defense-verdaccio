@@ -2,6 +2,6 @@ FROM verdaccio/verdaccio:6.6.0
 
 USER root
 
-RUN npm install --prefix /verdaccio/plugins @verdaccio/package-filter@13.0.1
+COPY verdaccio-image/plugins/verdaccio-cooldown-filter /verdaccio/plugins/verdaccio-cooldown-filter
 
 USER verdaccio

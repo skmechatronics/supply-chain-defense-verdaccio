@@ -21,6 +21,16 @@ infra-azure/       # Terraform for Azure hosting (App Service + Azure Files)
 - [Azure infrastructure](infra-azure/README.md) — deploy to Azure
 - [Vetting checklist](VETTING.md) — trust boundary and audit trail for Verdaccio and its plugins
 
+## Known limitations
+
+### The filter protects resolution, not locked installs
+
+The cooldown filter intercepts metadata requests (`GET /<package>`). When a `package-lock.json` already exists, npm skips metadata resolution and downloads tarballs directly from the `resolved` URLs in the lock file — the filter never runs. This is correct behaviour: `package-lock.json` exists precisely to give you reproducible, deterministic installs.
+
+**The filter's job is to govern what goes INTO the lock file**, not to re-check it on every restore. Protection happens when a developer runs `npm install <new-package>`, `npm update`, or generates a fresh lock file. Once a version is committed to the lock file it has already passed through the registry — that is the point at which the cooldown window applies.
+
+To protect against restoring a lock file that was committed before a block was added, add a CI step that parses `package-lock.json` and fails the build if any resolved version matches an entry in `PACKAGE_BLOCKS`. This is a client-side complement to the server-side registry filter.
+
 ## Roadmap
 
 | Phase | Description | Status |

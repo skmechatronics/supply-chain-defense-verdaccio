@@ -69,6 +69,30 @@ No plugin selected yet. Before selecting one:
 
 ---
 
+## Known attack patterns and mitigations
+
+### Pre-aged attack
+
+An attacker publishes a malicious package that looks legitimate, waits for the cooldown window to expire, then positions it into the dependency tree of a target package (via a compromised maintainer, a PR merge, or a new package release that depends on it). By the time developers install it, the package has already passed the age gate.
+
+**The cooldown window alone does not stop this.** It only provides a detection window.
+
+**Mitigation — two-registry model:**
+
+- **Quarantine registry**: all new packages are proxied here; the cooldown window is the review SLA
+- **Production registry**: packages are explicitly promoted after passing review during the quarantine period
+- The cooldown becomes an active review gate, not a passive timer
+
+Active review during the quarantine period (CVE scanning, maintainer verification, source review) is what turns the time window into a real defence.
+
+### CVE in a blocked package
+
+A security patch for a package is newer than `minAgeDays` and gets blocked by the filter. The organisation remains on the vulnerable version until the cooldown expires.
+
+**Mitigation — override mechanism:** operators can whitelist a specific `package@version` via the `PACKAGE_OVERRIDES` environment variable, bypassing the age gate for that version only. See the operator runbook for the override procedure.
+
+---
+
 ## Review cadence
 
 - Re-check CVEs for pinned versions quarterly

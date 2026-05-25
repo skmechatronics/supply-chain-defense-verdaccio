@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "@verdaccio/package-filter": "^13.0.1"
-  }
-}

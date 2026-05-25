@@ -57,7 +57,8 @@ function Remove-ExistingContainer {
 
 function Build-Image {
     Write-Progress-Step "Building image: $ImageName"
-    docker build -t $ImageName $PSScriptRoot
+    $RepoRoot = Join-Path $PSScriptRoot ".."
+    docker build -t $ImageName -f "$PSScriptRoot\Dockerfile" $RepoRoot
     if ($LASTEXITCODE -ne 0) {
         Write-Error-Step "Docker build failed."
         exit 1
