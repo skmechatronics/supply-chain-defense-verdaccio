@@ -19,10 +19,10 @@ resource "azurerm_storage_account" "verdaccio" {
   allow_nested_items_to_be_public = false
 }
 
-resource "azurerm_storage_share" "verdaccio" {
-  name               = "verdaccio-storage"
-  storage_account_id = azurerm_storage_account.verdaccio.id
-  quota              = var.storage_share_quota_gb
+resource "azurerm_storage_container" "verdaccio" {
+  name                 = "verdaccio-storage"
+  storage_account_id   = azurerm_storage_account.verdaccio.id
+  container_access_type = "private"
 }
 
 resource "azurerm_service_plan" "main" {
@@ -38,6 +38,10 @@ resource "azurerm_linux_web_app" "verdaccio" {
   resource_group_name = local.resource_group_name
   location            = var.location
   service_plan_id     = azurerm_service_plan.main.id
+
+  lifecycle {
+    ignore_changes = [site_config[0].application_stack]
+  }
 
   identity {
     type = "SystemAssigned"
@@ -64,16 +68,17 @@ resource "azurerm_linux_web_app" "verdaccio" {
   }
 
   app_settings = {
-    VERDACCIO_PORT   = "4873"
-    WEBSITES_PORT    = "4873"
-    DOCKER_ENABLE_CI = "true"
+    VERDACCIO_PORT                       = "4873"
+    WEBSITES_PORT                        = "4873"
+    DOCKER_ENABLE_CI                     = "true"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE  = "false"
   }
 
   storage_account {
     name         = "verdaccio-storage"
-    type         = "AzureFiles"
+    type         = "AzureBlob"
     account_name = azurerm_storage_account.verdaccio.name
-    share_name   = azurerm_storage_share.verdaccio.name
+    share_name   = azurerm_storage_container.verdaccio.name
     access_key   = azurerm_storage_account.verdaccio.primary_access_key
     mount_path   = "/verdaccio/storage"
   }
