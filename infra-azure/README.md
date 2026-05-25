@@ -78,11 +78,14 @@ This provisions the resource group and ACR (`vdcdacrause`). Check the outputs fo
 
 ## 3. Build and push the Verdaccio image
 
+Use `push-to-acr.ps1` — it builds from `verdaccio-image/`, pushes to ACR, and updates the App Service container config directly via Azure CLI:
+
 ```powershell
-az acr login --name vdcdacrause
-docker build -t vdcdacrause.azurecr.io/verdaccio-cooldown:0.1.0 ..\local-registry
-docker push vdcdacrause.azurecr.io/verdaccio-cooldown:0.1.0
+.\push-to-acr.ps1 -Tag 0.1.0
+.\push-to-acr.ps1 -Tag 0.2.0 -MinAgeDays 14
 ```
+
+After the first push, image config lives outside Terraform. Subsequent image updates are handled by `push-to-acr.ps1` alone — no `tofu apply` needed. Terraform manages infrastructure (App Service Plan, storage, networking); the running image is managed separately.
 
 ## 4. Deploy App Service hosting
 
@@ -109,3 +112,18 @@ Resources follow the pattern `{prefix}-{type}-{region}` (e.g. `vdcd-rg-ause`, `v
 | ACR | `vdcdacrause` |
 | App Service Plan | `vdcd-asp-ause` |
 | Web App | `vdcd-app-ause` |
+
+## Future considerations
+
+### Network security
+
+The current setup uses App Service IP access restrictions (`allowed_cidr_ranges` in tfvars). Set this to the client's office or VPN IP range (e.g. `["1.2.3.4/32"]`) — leaving it empty exposes the registry publicly.
+
+The proper solution for production is **VNet integration**: deploy the App Service into a client VNet with a private endpoint, making the registry unreachable from the public internet entirely. This requires a dedicated subnet and a higher App Service SKU (P1v2+).
+
+### Registry authentication
+
+With network-level security in place, no application auth is needed for internal deployments. If the registry must be accessible outside a VNet:
+
+- **`verdaccio-openid-connect`** — OIDC plugin supporting Azure AD, Okta, and Auth0. Developers authenticate with work credentials; npm uses a bearer token in `.npmrc`. Requires an Azure AD app registration in the client's tenant.
+- **Azure App Service EasyAuth** — platform-level Azure AD auth, no Verdaccio plugin needed, configured in Terraform. npm CLI requires a pre-generated token in `.npmrc`.

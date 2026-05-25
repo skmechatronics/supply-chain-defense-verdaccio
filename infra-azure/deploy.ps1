@@ -97,11 +97,15 @@ function Invoke-TofuAction {
             }
             "plan" {
                 Write-Step "Running tofu plan..."
-                tofu plan -var-file="terraform.tfvars"
+                tofu plan -var-file="terraform.tfvars" -out tf.out
             }
             "apply" {
                 Write-Step "Running tofu apply..."
-                tofu apply -var-file="terraform.tfvars"
+                if (Test-Path "tf.out") {
+                    tofu apply tf.out
+                } else {
+                    tofu apply -var-file="terraform.tfvars"
+                }
             }
             "output" {
                 Write-Step "Running tofu output..."
