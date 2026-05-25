@@ -7,7 +7,9 @@
 
 param(
     [ValidateRange(1, 90)]
-    [int]$MinAgeDays = 7
+    [int]$MinAgeDays = 7,
+    [string]$PackageBlocks    = "",
+    [string]$PackageOverrides = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -57,8 +59,8 @@ function Remove-ExistingContainer {
 
 function Build-Image {
     Write-Progress-Step "Building image: $ImageName"
-    $RepoRoot = Join-Path $PSScriptRoot ".."
-    docker build -t $ImageName -f "$PSScriptRoot\Dockerfile" $RepoRoot
+    $BuildContext = Join-Path $PSScriptRoot "..\verdaccio-image"
+    docker build --build-arg MIN_AGE_DAYS=$MinAgeDays -t $ImageName $BuildContext
     if ($LASTEXITCODE -ne 0) {
         Write-Error-Step "Docker build failed."
         exit 1
@@ -72,11 +74,13 @@ function Ensure-Directories {
 
 function Start-Container {
     Write-Progress-Step "Starting container: $ContainerName"
+    $envArgs = @()
+    if ($PackageBlocks)    { $envArgs += "-e"; $envArgs += "PACKAGE_BLOCKS=$PackageBlocks" }
+    if ($PackageOverrides) { $envArgs += "-e"; $envArgs += "PACKAGE_OVERRIDES=$PackageOverrides" }
     docker run -d `
         --name $ContainerName `
         -p 4873:4873 `
-        -v "${PSScriptRoot}\conf:/verdaccio/conf" `
-        -v "${PSScriptRoot}\storage:/verdaccio/storage" `
+        @envArgs `
         $ImageName | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Error-Step "Failed to start container."
@@ -101,8 +105,6 @@ function Wait-ForVerdaccio {
 }
 
 function Main {
-    Ensure-Directories
-    Update-ConfigCooldown
     Remove-ExistingContainer
     Build-Image
     Start-Container
