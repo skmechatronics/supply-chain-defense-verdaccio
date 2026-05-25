@@ -49,7 +49,8 @@ resource "azurerm_linux_web_app" "verdaccio" {
       docker_registry_url = var.docker_registry_url
     }
 
-    ip_restriction_default_action = local.ip_restriction_default_action
+    container_registry_use_managed_identity = true
+    ip_restriction_default_action           = local.ip_restriction_default_action
 
     dynamic "ip_restriction" {
       for_each = var.allowed_cidr_ranges

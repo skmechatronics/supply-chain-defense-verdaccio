@@ -23,9 +23,12 @@ variable "storage_share_quota_gb" {
 }
 
 variable "allowed_cidr_ranges" {
-  description = "CIDR blocks allowed to reach the registry. Empty list = no restriction (not recommended for production)."
+  description = "CIDR blocks allowed to reach the registry. At least one range must be specified."
   type        = list(string)
-  default     = []
+  validation {
+    condition     = length(var.allowed_cidr_ranges) > 0
+    error_message = "At least one CIDR range must be specified. Set allowed_cidr_ranges in terraform.tfvars."
+  }
 }
 
 variable "docker_registry_url" {
