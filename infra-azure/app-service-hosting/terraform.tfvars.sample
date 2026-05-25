@@ -9,16 +9,6 @@ storage_share_quota_gb = 5
 # App Service
 sku_name = "B1"
 
-# IP allowlist — restrict access to specific CIDR ranges
-# Leave empty to allow all traffic (not recommended for production)
-# Replace with the client's office or VPN IP range, e.g.:
-# allowed_cidr_ranges = ["1.2.3.4/32"]
-allowed_cidr_ranges = []
-
-# Use MCR placeholder on first deploy (before image is pushed to ACR)
-docker_registry_url = "https://mcr.microsoft.com"
-docker_image_name   = "appsvc/staticsite:latest"
-
-# Switch to ACR image once pushed:
-# docker_registry_url = "https://vdcdacrause.azurecr.io"
-# docker_image_name   = "verdaccio-cooldown:0.1.0"
+# IP allowlist — required, at least one CIDR range must be specified
+# Use the client's office or VPN IP range
+allowed_cidr_ranges = ["1.2.3.4/32"]

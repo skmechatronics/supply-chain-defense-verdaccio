@@ -23,21 +23,12 @@ variable "storage_share_quota_gb" {
 }
 
 variable "allowed_cidr_ranges" {
-  description = "CIDR blocks allowed to reach the registry. Empty list = no restriction (not recommended for production)."
+  description = "CIDR blocks allowed to reach the registry. At least one range must be specified."
   type        = list(string)
-  default     = []
-}
-
-variable "docker_registry_url" {
-  description = "Docker registry URL. Defaults to MCR placeholder — override with ACR URL once image is pushed."
-  type        = string
-  default     = "https://mcr.microsoft.com"
-}
-
-variable "docker_image_name" {
-  description = "Image name and tag to deploy. Defaults to MCR placeholder — override with ACR image once pushed."
-  type        = string
-  default     = "appsvc/staticsite:latest"
+  validation {
+    condition     = length(var.allowed_cidr_ranges) > 0
+    error_message = "At least one CIDR range must be specified. Set allowed_cidr_ranges in terraform.tfvars."
+  }
 }
 
 variable "sku_name" {
