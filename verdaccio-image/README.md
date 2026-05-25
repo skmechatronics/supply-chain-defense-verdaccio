@@ -1,6 +1,6 @@
 # verdaccio-image
 
-Production Docker image for the Verdaccio cooldown registry.
+Production Docker image for the Verdaccio cooldown registry. Used for both local development and Azure deployment — there is one image, not two.
 
 ## Base image
 
@@ -20,10 +20,45 @@ docker inspect --format='{{index .RepoDigests 0}}' verdaccio/verdaccio:<new-tag>
 `minAgeDays` is baked into the image at build time via the `MIN_AGE_DAYS` build argument (default: 7):
 
 ```powershell
-docker build --build-arg MIN_AGE_DAYS=7 -t verdaccio-cooldown:0.1.0 .
+docker build --build-arg MIN_AGE_DAYS=7 -t verdaccio-cooldown:local .
 ```
 
 To change the cooldown window, rebuild with a new value and push a new tag.
+
+## Plugin — verdaccio-cooldown-filter
+
+The cooldown filter is a custom Verdaccio filter plugin at `plugins/verdaccio-cooldown-filter/`. It is copied directly into the image at build time — no npm install from the public registry.
+
+### How it works
+
+On every metadata request (`GET /<package>`), the plugin:
+
+1. Removes any version published within the last `minAgeDays` days from the version list
+2. Updates `dist-tags.latest` to point to the newest surviving version
+3. Removes any dist-tags that pointed to filtered versions
+
+The filter mutates `packageInfo` in place before Verdaccio sends the response — Verdaccio v6 ignores the callback's second argument.
+
+### Runtime env vars
+
+| Variable | Format | Effect |
+|---|---|---|
+| `PACKAGE_BLOCKS` | `pkg@version,pkg@version` | Blocks specific versions regardless of age |
+| `PACKAGE_OVERRIDES` | `pkg@version,pkg@version` | Allows specific versions through the age gate |
+
+Both default to empty (no blocks, no overrides).
+
+### Example
+
+```powershell
+docker run -e "PACKAGE_BLOCKS=next@15.3.2" -e "PACKAGE_OVERRIDES=next@16.2.6" verdaccio-cooldown:local
+```
+
+At startup the plugin logs:
+
+```
+cooldown-filter: initialized (minAgeDays=7, overrides=[ 'next@16.2.6' ], blocks=[ 'next@15.3.2' ])
+```
 
 ## Security
 

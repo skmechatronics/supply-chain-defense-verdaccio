@@ -83,7 +83,10 @@ Use `push-to-acr.ps1` — it builds from `verdaccio-image/`, pushes to ACR, and 
 ```powershell
 .\push-to-acr.ps1 -Tag 0.1.0
 .\push-to-acr.ps1 -Tag 0.2.0 -MinAgeDays 14
+.\push-to-acr.ps1 -Tag 0.3.0 -PackageBlocks "next@15.3.2" -PackageOverrides "next@16.2.6"
 ```
+
+`PackageBlocks` and `PackageOverrides` are comma-separated `package@version` lists. They are set as App Service application settings so the running container picks them up without a rebuild — only the image tag change requires a new build.
 
 After the first push, image config lives outside Terraform. Subsequent image updates are handled by `push-to-acr.ps1` alone — no `tofu apply` needed. Terraform manages infrastructure (App Service Plan, storage, networking); the running image is managed separately.
 
@@ -97,7 +100,7 @@ Copy the outputs from step 2 into `app-service-hosting/terraform.tfvars`, then:
 .\deploy.ps1 -Module app-service-hosting -Action apply
 ```
 
-This creates the storage account, Azure Files share, App Service Plan, and Web App in the resource group provisioned by `shared/`. The App Service uses a system-assigned managed identity with AcrPull access — no credentials stored in state.
+This creates the App Service Plan and Web App in the resource group provisioned by `shared/`. The App Service uses a system-assigned managed identity with AcrPull access — no credentials stored in state. Storage is ephemeral (`/tmp`) — no Azure Files mount is required.
 
 ## Naming convention
 
