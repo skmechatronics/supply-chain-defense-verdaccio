@@ -143,6 +143,9 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
+# sample-app — real .npmrc must not be committed (use .npmrc.sample as template)
+sample-app/.npmrc
+
 # local-registry runtime artifacts
 local-registry/storage/
 local-registry/conf/config.yaml
