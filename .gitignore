@@ -147,8 +147,9 @@ vite.config.ts.timestamp-*
 local-registry/storage/
 local-registry/conf/config.yaml
 
-# terraform — local cache, generated lock, backend config, and local vars
+# terraform — local cache, generated lock, backend config, local vars, and saved plans
 .terraform/
 .terraform.lock.hcl
 backend.hcl
 terraform.tfvars
+tf.out
