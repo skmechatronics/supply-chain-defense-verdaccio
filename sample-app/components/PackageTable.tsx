@@ -58,7 +58,7 @@ export default function PackageTable({ packages }: { packages: PackageInfo[] }) 
                 <td className="px-4 py-3 font-mono text-gray-400">{pkg.requestedVersion}</td>
                 <td className="px-4 py-3 font-mono text-gray-300">{pkg.resolvedVersion ?? "—"}</td>
                 <td className="px-4 py-3 text-gray-300">
-                  {pkg.publishedAt ? new Date(pkg.publishedAt).toLocaleString() : "—"}
+                  {pkg.publishedAt ? new Date(pkg.publishedAt).toLocaleString('en-AU', { timeZone: 'UTC' }) : "—"}
                 </td>
                 <td className="px-4 py-3 text-gray-300">
                   {pkg.ageInDays !== null ? (

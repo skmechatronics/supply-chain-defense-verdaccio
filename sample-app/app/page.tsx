@@ -22,7 +22,7 @@ export default async function Home() {
           <span className="font-mono text-indigo-400">{data.registry}</span>
           {" · "}fetched at{" "}
           <span className="font-mono text-gray-300">
-            {new Date(data.fetchedAt).toLocaleString()}
+            {new Date(data.fetchedAt).toLocaleString('en-AU', { timeZone: 'UTC' })}
           </span>
         </p>
       </div>
