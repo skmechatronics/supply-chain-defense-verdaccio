@@ -3,6 +3,8 @@ import { join } from "path";
 import { differenceInDays } from "date-fns";
 
 export const REGISTRY = "https://vdcd-app-ause.azurewebsites.net";
+const NPM_REGISTRY = "https://registry.npmjs.org";
+const MIN_AGE_DAYS = 7;
 
 export interface PackageInfo {
   name: string;
@@ -21,45 +23,68 @@ export interface PackagesPayload {
   packages: PackageInfo[];
 }
 
-async function fetchPackageMeta(name: string, version: string): Promise<PackageInfo> {
+function encodePackageName(name: string): string {
+  return name.startsWith("@")
+    ? `@${encodeURIComponent(name.slice(1))}`
+    : encodeURIComponent(name);
+}
+
+async function fetchPackageMeta(
+  name: string,
+  requestedVersion: string,
+  resolvedVersion: string
+): Promise<PackageInfo> {
   try {
-    const res = await fetch(`${REGISTRY}/${encodeURIComponent(name)}`, {
-      cache: 'no-store',
+    const res = await fetch(`${NPM_REGISTRY}/${encodePackageName(name)}`, {
+      cache: "no-store",
     });
 
     if (!res.ok) {
-      return { name, requestedVersion: version, resolvedVersion: null, publishedAt: null, ageInDays: null, status: "unknown", error: `HTTP ${res.status}` };
+      return { name, requestedVersion, resolvedVersion, publishedAt: null, ageInDays: null, status: "unknown", error: `HTTP ${res.status}` };
     }
 
     const meta = await res.json();
-    const resolvedVersion: string = meta["dist-tags"]?.latest ?? version.replace(/^\^|~/, "");
     const publishedAt: string | undefined = meta.time?.[resolvedVersion];
 
     if (!publishedAt) {
-      return { name, requestedVersion: version, resolvedVersion, publishedAt: null, ageInDays: null, status: "unknown" };
+      return { name, requestedVersion, resolvedVersion, publishedAt: null, ageInDays: null, status: "unknown" };
     }
 
     const ageInDays = differenceInDays(new Date(), new Date(publishedAt));
-    const status: PackageInfo["status"] = ageInDays >= 7 ? "safe" : "cooling";
+    const status: PackageInfo["status"] = ageInDays >= MIN_AGE_DAYS ? "safe" : "cooling";
 
-    return { name, requestedVersion: version, resolvedVersion, publishedAt, ageInDays, status };
+    return { name, requestedVersion, resolvedVersion, publishedAt, ageInDays, status };
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown error";
-    return { name, requestedVersion: version, resolvedVersion: null, publishedAt: null, ageInDays: null, status: "unknown", error: message };
+    return { name, requestedVersion, resolvedVersion, publishedAt: null, ageInDays: null, status: "unknown", error: message };
   }
 }
 
 export async function getPackages(): Promise<PackagesPayload> {
-  const pkgPath = join(process.cwd(), "package.json");
-  const pkg = JSON.parse(readFileSync(pkgPath, "utf-8"));
+  const lock = JSON.parse(readFileSync(join(process.cwd(), "package-lock.json"), "utf-8"));
 
-  const deps: Record<string, string> = {
-    ...pkg.dependencies,
-    ...pkg.devDependencies,
+  const root = lock.packages[""];
+  const directDeps: Record<string, string> = {
+    ...root.dependencies,
+    ...root.devDependencies,
   };
 
   const packages = await Promise.all(
-    Object.entries(deps).map(([name, version]) => fetchPackageMeta(name, version as string))
+    Object.entries(directDeps).map(([name, requestedVersion]) => {
+      const entry = lock.packages[`node_modules/${name}`];
+      if (!entry) {
+        return Promise.resolve<PackageInfo>({
+          name,
+          requestedVersion,
+          resolvedVersion: null,
+          publishedAt: null,
+          ageInDays: null,
+          status: "unknown",
+          error: "not in lock file",
+        });
+      }
+      return fetchPackageMeta(name, requestedVersion, entry.version);
+    })
   );
 
   return {
