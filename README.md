@@ -13,8 +13,10 @@ The core idea is a **cooldown window**: the registry proxies npm but only surfac
 ## Repository layout
 
 ```
-local-registry/    # Docker-based local registry for development and testing
-infra-azure/       # Terraform for Azure hosting (App Service + Azure Files)
+verdaccio-image/   # Dockerfile + custom cooldown filter plugin (shared by local and Azure)
+local-registry/    # Scripts to build and run the registry locally
+infra-azure/       # OpenTofu for Azure hosting (App Service)
+sample-app/        # Next.js demo app pointed at the registry
 ```
 
 - [Local registry](local-registry/README.md) — run the time-gated registry locally
@@ -38,5 +40,5 @@ To protect against restoring a lock file that was committed before a block was a
 | Local dev | Time-gated registry with verification scripts | Done |
 | Demo app | Express app with `/packages` endpoint, pointed at the local registry | Planned |
 | Azure infra | OpenTofu: App Service + Azure Files mount | Planned |
-| Override mechanism | API or config flag to bypass the cooldown for a named package | Planned |
+| Override mechanism | `PACKAGE_OVERRIDES` and `PACKAGE_BLOCKS` env vars on the registry | Done |
 | AWS | Equivalent Terraform for AWS (App Runner or ECS) | Future |

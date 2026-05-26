@@ -1,6 +1,6 @@
 # local-registry
 
-Runs Verdaccio locally as a time-gated npm proxy. Packages are filtered so that only versions at least `minAgeDays` old are visible as `latest`.
+Runs Verdaccio locally as a time-gated npm proxy. Packages are filtered so that only versions at least `minAgeDays` old are visible as `latest`. Uses the same `verdaccio-image/` Dockerfile as the Azure deployment — config is baked into the image.
 
 ## Prerequisites
 
@@ -12,27 +12,35 @@ Runs Verdaccio locally as a time-gated npm proxy. Packages are filtered so that 
 ### Run with default 7-day cooldown
 
 ```powershell
-.\build-and-check.ps1
+.\build-docker-verdaccio.ps1
 ```
 
 ### Run with a custom cooldown
 
 ```powershell
-.\build-and-check.ps1 -MinAgeDays 14
+.\build-docker-verdaccio.ps1 -MinAgeDays 14
 ```
 
-### Check specific packages
+### Block a specific version
 
 ```powershell
-.\build-and-check.ps1 -MinAgeDays 7 -Packages axios,react,lodash
+.\build-docker-verdaccio.ps1 -PackageBlocks "next@15.3.2"
 ```
 
-The orchestrator:
-1. Generates `conf/config.yaml` from the template, injecting `MinAgeDays`
-2. Removes any existing `verdaccio-dev` container
-3. Builds the `verdaccio-cooldown:0.1.0` image
-4. Starts the container on `http://localhost:4873`
-5. Queries both npm and verdaccio for each package and prints a comparison table
+### Block a version and allow a patched replacement through the age gate
+
+```powershell
+.\build-docker-verdaccio.ps1 -PackageBlocks "next@15.3.2" -PackageOverrides "next@16.2.6"
+```
+
+Multiple entries are comma-separated: `"next@15.3.2,lodash@4.17.20"`.
+
+### Verify the filter
+
+```powershell
+.\check-package-versions.ps1
+.\check-package-versions.ps1 -Packages next,react,axios
+```
 
 ### Example output
 
@@ -50,38 +58,14 @@ Green rows confirm the filter is active. Yellow rows mean the npm latest is alre
 
 ## How it works
 
-### Dockerfile
+The image is built from `verdaccio-image/` — the same Dockerfile used for Azure. `minAgeDays` is baked in via a build argument; `PACKAGE_BLOCKS` and `PACKAGE_OVERRIDES` are passed as environment variables at container start time.
 
-```dockerfile
-FROM verdaccio/verdaccio:6.6.0
-USER root
-RUN npm install --prefix /verdaccio/plugins @verdaccio/package-filter@13.0.1
-USER verdaccio
-```
-
-The plugin is baked into the image so no volume mount or runtime install is needed.
-
-### Config template
-
-```yaml
-filters:
-  '@verdaccio/package-filter':
-    minAgeDays: {{MIN_AGE_DAYS}}
-```
-
-`build-docker-verdaccio.ps1` replaces `{{MIN_AGE_DAYS}}` before starting the container. The generated `conf/config.yaml` is bind-mounted into the container so it can be changed without a rebuild.
+See [verdaccio-image/README.md](../verdaccio-image/README.md) for plugin details.
 
 ## File layout
 
 ```
-conf/
-  config-template.yaml   # verdaccio config with {{MIN_AGE_DAYS}} placeholder
-  config.yaml            # generated at build time — do not edit directly
-plugins/
-  package.json           # declares @verdaccio/package-filter dependency
-storage/                 # verdaccio package metadata cache (gitignored, created at runtime)
-Dockerfile
-build-docker-verdaccio.ps1   # build image, inject cooldown, start container
+build-docker-verdaccio.ps1   # build image, start container
 check-package-versions.ps1   # compare verdaccio vs npm to verify filtering
 build-and-check.ps1          # orchestrator: runs both scripts end-to-end
 ```
