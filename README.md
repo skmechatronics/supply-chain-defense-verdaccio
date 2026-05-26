@@ -16,12 +16,13 @@ The core idea is a **cooldown window**: the registry proxies npm but only surfac
 verdaccio-image/   # Dockerfile + custom cooldown filter plugin (shared by local and Azure)
 local-registry/    # Scripts to build and run the registry locally
 infra-azure/       # OpenTofu for Azure hosting (App Service)
-sample-app/        # Next.js demo app pointed at the registry
+sample-app/        # Next.js dashboard — pointed at the registry, shows package cooldown status
 ```
 
 - [Local registry](local-registry/README.md) — run the time-gated registry locally
-- [Azure infrastructure](infra-azure/README.md) — deploy to Azure
-- [Vetting checklist](VETTING.md) — trust boundary and audit trail for Verdaccio and its plugins
+- [Azure infrastructure](infra-azure/README.md) — deploy to Azure App Service
+- [Sample app](sample-app/README.md) — Next.js dashboard showing resolved versions and cooldown status
+- [Vetting checklist](Vetting.md) — trust boundary and audit trail for Verdaccio and its plugins
 
 ## Known limitations
 
@@ -38,7 +39,7 @@ To protect against restoring a lock file that was committed before a block was a
 | Phase | Description | Status |
 |---|---|---|
 | Local dev | Time-gated registry with verification scripts | Done |
-| Demo app | Express app with `/packages` endpoint, pointed at the local registry | Planned |
-| Azure infra | OpenTofu: App Service + Azure Files mount | Planned |
 | Override mechanism | `PACKAGE_OVERRIDES` and `PACKAGE_BLOCKS` env vars on the registry | Done |
+| Azure infra | OpenTofu: App Service, ACR, managed identity | Done |
+| Demo app | Next.js dashboard showing resolved versions and cooldown status | Done |
 | AWS | Equivalent Terraform for AWS (App Runner or ECS) | Future |
