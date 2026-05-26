@@ -24,7 +24,7 @@ export interface PackagesPayload {
 async function fetchPackageMeta(name: string, version: string): Promise<PackageInfo> {
   try {
     const res = await fetch(`${REGISTRY}/${encodeURIComponent(name)}`, {
-      next: { revalidate: 300 },
+      cache: 'no-store',
     });
 
     if (!res.ok) {
