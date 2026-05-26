@@ -44,17 +44,9 @@ Multiple entries are comma-separated: `"next@15.3.2,lodash@4.17.20"`.
 
 ### Example output
 
-```
-PACKAGE              NPM LATEST      NPM AGE    VERDACCIO       VERD AGE   STATUS
-------------------------------------------------------------------------------------------
-axios                1.9.0           2.1        1.8.4           18.3       FILTERED
-@types/node          22.15.21        0.3        22.15.17        8.4        FILTERED
-eslint               9.28.0          5.2        9.27.0          12.1       FILTERED
-vite                 6.3.5           3.8        6.3.4           10.6       FILTERED
-typescript           5.8.3           42.1       5.8.3           42.1       not filtered
-```
+![check-package-versions output](check-output.jpg)
 
-Green rows confirm the filter is active. Yellow rows mean the npm latest is already old enough to pass through.
+Green rows confirm the filter is active — Verdaccio is serving an older version because the npm latest is too new. Yellow rows mean the npm latest is already old enough to pass through unchanged.
 
 ## How it works
 
